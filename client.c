@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     char buffer[SIZE];
     int bytes;
 
-    if (argc != 2) {
+    if (argc != 2) {//בדיקת כמות הארגומנטים שהתכנית לקוח מקבלת
         fprintf(stderr, "usage: %s <server-ip-address>\n", argv[0]);
         exit(1);
     }
@@ -43,20 +43,33 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    const char *msg = "Hello from client!";
-    if (send(sockfd, msg, strlen(msg), 0) == -1) {
-        perror("send");
-    }
+    printf("Connent to server at %s:%d\n", argv[1], PORT);
 
-    bytes = recv(sockfd, buffer, SIZE - 1, 0);
-    if (bytes <= 0) {
-        perror("recv");
-        close(sockfd);
-        exit(1);
-    }
+    while (1) {
+        printf("Client: ");
+        fgets(buffer, SIZE, stdin);
 
-    buffer[bytes] = '\0';
-    printf("Client received: %s\n", buffer);
+        if (send(sockfd, buffer, strlen(buffer), 0) == -1) {
+            perror("send");
+            break;
+        }
+
+        if (strncmp(buffer, "exit", 4) == 0)
+            break;
+
+        memset(buffer, 0, SIZE);
+        bytes = recv(sockfd, buffer, SIZE - 1, 0);
+        if (bytes <= 0) {
+            printf("Server disconnected.\n");
+            break;
+        }
+
+        buffer[bytes] = '\0';
+        printf("Server: %s", buffer);
+
+        if (strncmp(buffer, "exit", 4) == 0)
+            break;
+    }
 
     close(sockfd);
     return 0;

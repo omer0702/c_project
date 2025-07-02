@@ -46,19 +46,32 @@ int main(void) {
         exit(1);
     }
 
-    bytes = recv(new_fd, buffer, SIZE - 1, 0);
-    if (bytes <= 0) {
-        perror("recv");
-        close(new_fd);
-        close(sockfd);
-        exit(1);
-    }
-    buffer[bytes] = '\0';
-    printf("Server received: %s\n", buffer);
+    printf("Client connected!\n");
 
-    char *response = "Server response: Got your message!";
-    if (send(new_fd, response, strlen(response), 0) == -1) {
-        perror("send");
+    while (1) {
+        memset(buffer, 0, SIZE);
+        bytes = recv(new_fd, buffer, SIZE - 1, 0);
+        if (bytes <= 0) {
+            printf("Client disconnected.\n");
+            break;
+        }
+
+        buffer[bytes] = '\0';
+        printf("Client: %s", buffer);
+
+        if (strncmp(buffer, "exit", 4) == 0)
+            break;
+
+        printf("Server: ");
+        fgets(buffer, SIZE, stdin);
+
+        if (send(new_fd, buffer, strlen(buffer), 0) == -1) {
+            perror("send");
+            break;
+        }
+
+        if (strncmp(buffer, "exit", 4) == 0)//משווה 4 תווים של התשובה לexit
+            break;
     }
 
     close(new_fd);
