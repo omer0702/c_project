@@ -28,6 +28,26 @@ void broadcast(char* msg, int sender_fd) {//שליחת הודעה לכל הלק�
     pthread_mutex_unlock(&lock);//שחרור המנעול
 }
 
+
+void* server_input(void* arg) {//בשביל שגם השרת יוכל לשלוח הודעות ללקוחות
+    char buffer[BUFFER_SIZE];
+
+    while (1) {
+        fgets(buffer, BUFFER_SIZE, stdin);
+        if (!(strncmp(buffer, "/exit", 5))) {
+            printf("close server.\n");
+            exit(0);
+        }
+
+        char msg[BUFFER_SIZE + 50];
+        sprintf(msg, "server: %s", buffer);
+        broadcast(msg, -1);
+    }
+
+    return NULL;
+}
+
+
 void remove_client(int client_fd) {
     int i;
     pthread_mutex_lock(&lock);
@@ -59,6 +79,7 @@ void* handle_client(void* arg) {//רצה בכל תהליכון עבור לקוח
         close(client_fd);
         return NULL;
     }
+    name[strcspn(name, "\n")] = 0;
 
     //הוספת הלקוח החדש למערכים של הלקוחות תוך מניעת התנגשויות בין תהליכונים
     pthread_mutex_lock(&lock);
@@ -127,6 +148,8 @@ int main() {
     server_addr.sin_port = htons(PORT);
     server_addr.sin_addr.s_addr = INADDR_ANY;
 
+    int opt = 1;
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));//בשביל שהשרת יוכל להשתמש שום בפורט גם אם הוא עדיין תפוס
     if (bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
         perror("bind failed");
         close(server_fd);
@@ -139,7 +162,11 @@ int main() {
         exit(1);
     }
 
+
     printf("server listening on port %d...\n", PORT);
+    pthread_t t_server_input;
+    pthread_create(&t_server_input, NULL, server_input, NULL);
+
 
     while (1) {
         client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &addr_len);

@@ -53,6 +53,7 @@ int main() {
     //שליחת השם לשרת
     printf("enter your name: ");
     fgets(buffer, sizeof(buffer), stdin);
+    buffer[strcspn(buffer, "\n")] = 0;//מחיקת ירידת השורה בשביל ההדפסה בטרמינל
     send(sock, buffer, strlen(buffer), 0);
 
     pthread_create(&t_id, NULL, receive_handle, NULL);
@@ -61,6 +62,7 @@ int main() {
     while (running) {
         memset(buffer, 0, BUFFER_SIZE);
         fgets(buffer, BUFFER_SIZE, stdin);
+        //buffer[strcspn(buffer, "\n")] = '\0';
 
         if (!(strncmp(buffer, "/exit", 5))) {
             running = 0;

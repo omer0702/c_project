@@ -16,5 +16,6 @@ extern pthread_mutex_t lock;
 void broadcast(char* msg, int sender_fd);
 void remove_client(int client_fd);
 void* handle_client(void* arg);
+void* server_input(void* arg);
 
 #endif
