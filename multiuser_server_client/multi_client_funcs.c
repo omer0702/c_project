@@ -11,6 +11,14 @@
 #define SIZE 1024
 
 int main(int argc, char *argv[]) {
+
+    createSocket();
+    fillHints();
+    Bind();
+    startListen();
+    handleConnection();
+
+
     int sockfd;
     struct sockaddr_in their_addr;
     char buffer[SIZE];

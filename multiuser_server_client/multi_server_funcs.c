@@ -46,6 +46,14 @@ void handle_client(int client_fd) {
 
 
 int main(void) {
+
+    createSocket();
+    fillHints();
+    Bind();
+    startListen();
+    handleConnection();
+
+    //
     int sockfd, new_fd;
     struct sockaddr_in my_addr, their_addr;
     socklen_t sin_size;
@@ -55,12 +63,14 @@ int main(void) {
         perror("socket");
         exit(1);
     }
-
+    //
+    
     my_addr.sin_family = AF_INET;
     my_addr.sin_port = htons(PORT);
     my_addr.sin_addr.s_addr = INADDR_ANY;//השרת מקשיב על כל כתובות ip של המחשב
     memset(&(my_addr.sin_zero), '\0', 8);
-
+    
+    //
     if (bind(sockfd, (struct sockaddr *)&my_addr, sizeof(struct sockaddr)) == -1) {
         perror("bind");
         close(sockfd);
@@ -75,7 +85,7 @@ int main(void) {
 
     printf("Server: waiting for a connection on port %d...\n", PORT);
 
-     while (1) {
+    while (1) {
         sin_size = sizeof(struct sockaddr_in);
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
 
